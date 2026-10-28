@@ -517,7 +517,7 @@ function profSave(){cfg.prof={cs:$("callsign").value,div:$("division").value,oth
 (function(){var p=cfg.prof;if(p){$("callsign").value=p.cs||"";$("division").value=p.div||"patrol";$("divOther").value=p.other||"";$("service").value=p.svc||""}else $("prof").open=true;var q=cfg.dprof;if(q){$("dName").value=q.name||"";$("dService").value=q.svc||""}sumProf()})();
 // ===== Ambiance hélicoptère (Air Unit) : fichier fourni =====
 var airN=0;
-function syncHeli(){var a=$("heliAudio");if(!a)return;a.volume=Math.max(0,Math.min(1,.5*cfg.sfx));if(airN>0){if(a.paused){a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}}else{a.pause();a.currentTime=0}}
+function syncHeli(){var a=$("heliAudio");if(!a)return;a.volume=Math.max(0,Math.min(1,1*cfg.sfx));if(airN>0){if(a.paused){a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}}else{a.pause();a.currentTime=0}}
 function heliInit(){syncHeli()}
 function air(d){airN=Math.max(0,airN+d);syncHeli()}
 $("clearLog").onclick=function(){if(!confirm("Effacer tout le journal enregistré sur cet appareil ?"))return;$("log").innerHTML="";if(DB){try{DB.transaction("log","readwrite").objectStore("log").clear()}catch(e){}}seenLogs=Object.create(null)};
