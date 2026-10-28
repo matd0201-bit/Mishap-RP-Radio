@@ -291,10 +291,14 @@ function dbAll(cb){if(!DB){cb([]);return}try{var r=DB.transaction("log").objectS
 function deletedUid(uid){if(!uid)return;deletedLogs[uid]=1;saveDeleted();var L=$("log");Array.prototype.slice.call(L.children).forEach(function(li){if(li.dataset.logUid===uid)li.remove()});
   if(DB)try{var tx=DB.transaction("log","readwrite"),st2=tx.objectStore("log"),r=st2.openCursor();r.onsuccess=function(){var c=r.result;if(!c)return;if(c.value&&c.value.uid===uid)c.delete();c.continue()}}catch(e){}}
 function deleteLog(uid,remote){if(!uid)return;deletedUid(uid);if(!remote&&typeof net!=="undefined"&&net)net.bc({t:"logDelete",uid:uid,owner:localUserId})}
-function recForWire(rec){return {uid:rec.uid,owner:rec.owner,author:rec.author,ts:rec.ts,txt:rec.txt,cls:rec.cls||"",pcm:rec.pcm&&rec.pcm.length<=600000?rec.pcm:null,air:rec.pcm&&rec.pcm.length<=600000?(rec.air||0):0}}
+function recForWire(rec){return {uid:rec.uid,owner:rec.owner,author:rec.author,ts:rec.ts,txt:rec.txt,cls:rec.cls||"",pcm:null,air:rec.air||0}}
 function receiveLog(input){if(!input||!input.uid||deletedLogs[input.uid]||seenLogs[input.uid])return;var raw=input.pcm||null,pcm=null;try{if(raw){if(raw instanceof Int16Array)pcm=raw;else if(raw instanceof ArrayBuffer)pcm=new Int16Array(raw);else if(raw.buffer&&raw.length!==undefined)pcm=new Int16Array(raw.buffer,raw.byteOffset||0,raw.length);else if(Array.isArray(raw))pcm=new Int16Array(raw)}}catch(e){}var rec={uid:String(input.uid).slice(0,100),owner:String(input.owner||"").slice(0,100),author:String(input.author||"").slice(0,60),ts:+input.ts||Date.now(),txt:String(input.txt||"").slice(0,1000),cls:String(input.cls||"").slice(0,30),pcm:pcm,air:input.air?1:0};if(!rec.uid||deletedLogs[rec.uid])return;seenLogs[rec.uid]=1;dbPut(rec);var b=null;if(pcm&&pcm.length&&ac()){b=ctx.createBuffer(1,pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<pcm.length;i++)d[i]=pcm[i]/32767;if(rec.air)b.air=1}addLi(rec,b)}
+var pendingLogAudio=Object.create(null);
+function addLogPlayButton(uid,b){var L=$("log"),li=null;for(var j=0;j<L.children.length;j++){if(L.children[j].dataset.logUid===uid){li=L.children[j];break}}if(!li)return;var sp=li.querySelector("span");if(!sp||sp.querySelector('button[aria-label="Réécouter"]'))return;var btn=document.createElement("button");btn.className="play";btn.textContent="Lire · "+Math.max(1,Math.round(b.duration))+" s";btn.setAttribute("aria-label","Réécouter");btn.onclick=function(){play(b,btn)};sp.appendChild(btn)}
+function dbUpdateLogAudio(uid,pcm,airFlag){if(!DB)return;try{var tx=DB.transaction("log","readwrite"),store=tx.objectStore("log"),r=store.openCursor();r.onsuccess=function(){var c=r.result;if(!c)return;if(c.value&&c.value.uid===uid){var v=c.value;v.pcm=pcm;v.air=airFlag?1:0;c.update(v);return}c.continue()}}catch(e){}}
+function receiveLogAudio(m){if(!m||!m.uid||!Array.isArray(m.pcm))return;var uid=String(m.uid).slice(0,100),total=+m.total,index=+m.index,parts=+m.parts;if(!uid||!(total>0)||total>600000||!(parts>0)||parts>400||index<0||index>=parts||Math.floor(index)!==index)return;var x=pendingLogAudio[uid];if(!x||x.total!==total||x.parts!==parts){x=pendingLogAudio[uid]={total:total,parts:parts,chunks:new Array(parts),count:0,air:!!m.air}}if(!x.chunks[index]){x.chunks[index]=new Int16Array(m.pcm);x.count++}if(x.count<parts)return;var pcm=new Int16Array(total),offset=0;for(var i=0;i<parts;i++){var part=x.chunks[i];if(!part)return;if(offset+part.length>total)part=part.subarray(0,total-offset);pcm.set(part,offset);offset+=part.length}delete pendingLogAudio[uid];if(offset<total)return;var b=null;if(ac()){b=ctx.createBuffer(1,pcm.length,16000);var d=b.getChannelData(0);for(var k=0;k<pcm.length;k++)d[k]=pcm[k]/32767;if(x.air)b.air=1}dbUpdateLogAudio(uid,pcm,x.air);if(b)addLogPlayButton(uid,b)}
 function restoreLog(){dbAll(function(rows){rows.forEach(function(r){if(!r.uid||deletedLogs[r.uid])return;seenLogs[r.uid]=1;var b=null;if(r.pcm&&r.pcm.length&&ac()){b=ctx.createBuffer(1,r.pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<r.pcm.length;i++)d[i]=r.pcm[i]/32767;if(r.air)b.air=1}addLi(r,b)});});}
-function log(txt,cls,buf,owned,share){var ts=Date.now(),uid=localUserId+":"+ts.toString(36)+":"+Math.random().toString(36).slice(2,8);var rec={uid:uid,owner:owned?localUserId:"",author:cs(),ts:ts,txt:String(txt||"").slice(0,1000),cls:cls||"",pcm:buf?packBuf(buf):null,air:buf&&buf.air?1:0};seenLogs[uid]=1;addLi(rec,buf||null);dbPut(rec);if(share!==false&&typeof net!=="undefined"&&net)net.bc({t:"log",rec:recForWire(rec)})}
+function log(txt,cls,buf,owned,share){var ts=Date.now(),uid=localUserId+":"+ts.toString(36)+":"+Math.random().toString(36).slice(2,8);var rec={uid:uid,owner:owned?localUserId:"",author:cs(),ts:ts,txt:String(txt||"").slice(0,1000),cls:cls||"",pcm:buf?packBuf(buf):null,air:buf&&buf.air?1:0};seenLogs[uid]=1;addLi(rec,buf||null);dbPut(rec);if(share!==false&&typeof net!=="undefined"&&net)net.sendLog(rec)}
 function setState(s,c){var e=$("state");e.textContent=s;e.className="state"+(c?" "+c:"")+(s==="PRIORITY TONE"?" alert":"");var n=$("snd");if(n)n.className="snd"+(c?" "+c:"")}
 function cs(){return st.mode==="dispatch"?($("dName").value.trim()||"DISPATCH"):($("callsign").value.trim()||"Unité")}
 function pad(n){return n<10?"0"+n:""+n}
@@ -369,7 +373,14 @@ document.addEventListener("keyup",function(e){
   if(cap){if(pm&&pm===e.code){e.preventDefault();bind({code:e.code,label:lbl(e)})}return}
   var k=cfg.keys.ptt;if(!k||!st.tx||cfg.pttMode==="toggle")return;
   if(e.code===k.code||(k.ctrl&&/^Control/.test(e.code))||(k.shift&&/^Shift/.test(e.code))||(k.alt&&/^Alt/.test(e.code))||(k.meta&&/^Meta/.test(e.code))){e.preventDefault();pttUp()}},true);
-window.addEventListener("blur",function(){if(cfg.pttMode!=="toggle")pttUp()});
+var extensionPttActive=false;
+window.__MISHAP_PTT_EXTENSION_BRIDGE__=true;
+window.addEventListener("mishap-radio-extension-ptt",function(e){
+  var state=e&&e.detail;
+  if(state==="down"){extensionPttActive=true;pttDown()}
+  else if(state==="up"){extensionPttActive=false;pttUp()}
+});
+window.addEventListener("blur",function(){if(cfg.pttMode!=="toggle"&&!extensionPttActive)pttUp()});
 [$("callsign"),$("free")].forEach(function(el){el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key==="Escape")el.blur()})});
 // Paramètres
 function renderKeys(){var L=$("keyList");L.innerHTML="";ACT.forEach(function(x){var r=document.createElement("div"),n=document.createElement("span"),b=document.createElement("button"),c=document.createElement("button");
@@ -449,7 +460,9 @@ var net=(function(){
     add(cs(),sb(st.mode,divLabel(),svcv()),st.ch,st.tx,true);Object.keys(peers).forEach(function(k){var p=peers[k];if(conns[k])add(p.cs,sb(p.mode,p.dl,p.svc),p.ch,p.tx,false)});$("cnt").textContent="("+(Object.keys(conns).length+1)+")";unitsChanged()}
   function hello(){bc(prof({t:"hello"}));updAll();renderWho()}
   function sendHello(c){try{c.send(prof({t:"hello"}));c.send({t:"state",s100:st.s100,panic:st.panics.me?1:0,who:disp(),pch:st.ch,inc:{rev:st.incRev,list:st.inc,arch:st.incArch,drafts:st.incDraft}});sendHistory(c)}catch(e){}}
-  function sendHistory(c){try{Object.keys(deletedLogs).forEach(function(uid){if(c.open)c.send({t:"logDelete",uid:uid,owner:localUserId})});dbAll(function(rows){rows.forEach(function(r){if(c.open&&r.uid&&!deletedLogs[r.uid])try{c.send({t:"log",rec:recForWire(r)})}catch(e){}})})}catch(e){}}
+  function sendLogTo(c,rec,includeAudio){if(!c||!c.open||!rec||!rec.uid)return;try{c.send({t:"log",rec:recForWire(rec)})}catch(e){return}var pcm=rec.pcm;if(!includeAudio||!pcm||!pcm.length||pcm.length>600000)return;var chunkSize=2048,parts=Math.ceil(pcm.length/chunkSize),index=0;function next(){if(!c.open)return;var start=index*chunkSize,end=Math.min(pcm.length,start+chunkSize),values=Array.prototype.slice.call(pcm,start,end);try{c.send({t:"logAudio",uid:rec.uid,total:pcm.length,index:index,parts:parts,pcm:values,air:rec.air||0})}catch(e){}index++;if(index<parts)setTimeout(next,4)}setTimeout(next,4)}
+  function sendLog(rec){Object.keys(conns).forEach(function(k){sendLogTo(conns[k],rec,true)})}
+  function sendHistory(c){try{Object.keys(deletedLogs).forEach(function(uid){if(c.open)c.send({t:"logDelete",uid:uid,owner:localUserId})});dbAll(function(rows){var audioRows=rows.filter(function(r){return r&&r.uid&&!deletedLogs[r.uid]&&r.pcm&&r.pcm.length}).slice(-10),audioIds=Object.create(null);audioRows.forEach(function(r){audioIds[r.uid]=1});rows.forEach(function(r){if(c.open&&r.uid&&!deletedLogs[r.uid])sendLogTo(c,r,!!audioIds[r.uid])})})}catch(e){}}
   function onMsg(id,m){var p=peers[id];if(!p||!m||!m.t)return;var ch=cl(m.ch),w=String(m.who||"").slice(0,30);
     if(m.t==="hello"||m.t==="tx"){p.cs=String(m.cs||p.cs).slice(0,20);p.ch=ch;if(m.div)p.div=(m.div==="air"?"air":m.div==="other"?"other":"patrol");if(m.dl!==undefined){p.dl=String(m.dl).slice(0,30);p.svc=String(m.svc||"").slice(0,20)}if(m.t==="hello")p.mode=m.mode==="dispatch"?"dispatch":"unit";else{p.tx=!!m.on;if(m.mode)p.mode=m.mode==="dispatch"?"dispatch":"unit"}upd(id);renderWho()}
     else if(m.t==="s100")setS100(ch,!!m.on,String(m.loc||"").slice(0,80),w,true);
@@ -458,7 +471,7 @@ var net=(function(){
     else if(m.t==="ack"){st.panics={};refresh()}
     else if(m.t==="inc"){if(p.mode==="dispatch")incRecv(+m.rev||0,m.list,m.arch,m.drafts,m.publishedId)}
     else if(m.t==="note"){/* Le message du journal est synchronisé via t=log. */}
-    else if(m.t==="log"){receiveLog(m.rec)}else if(m.t==="logDelete"){if(m.uid)deleteLog(String(m.uid),true)}
+    else if(m.t==="log"){receiveLog(m.rec)}else if(m.t==="logAudio"){receiveLogAudio(m)}else if(m.t==="logDelete"){if(m.uid)deleteLog(String(m.uid),true)}
     else if(m.t==="state"){if(m.s100&&typeof m.s100==="object")Object.keys(m.s100).forEach(function(k){var c=cl(k);if(!st.s100[c])st.s100[c]={loc:String(m.s100[k]&&m.s100[k].loc||"").slice(0,80)}});if(m.panic&&!st.panics[id])st.panics[id]={who:w,ch:cl(m.pch)};if(m.inc)incRecv(+m.inc.rev||0,m.inc.list,m.inc.arch,m.inc.drafts);refresh()}}
   function attach(id,rs){var p=mk(id);if(p.src)return;var el=new Audio();el.srcObject=rs;el.muted=true;el.play().catch(function(){});
     p.el=el;p.src=ctx.createMediaStreamSource(rs);p.g=ctx.createGain();p.g.gain.value=0;p.src.connect(p.g);p.g.connect(rxBus);upd(id)}
@@ -480,7 +493,7 @@ var net=(function(){
     p.on("error",function(e){if(e.type==="peer-unavailable")return;
       if(!me.peer){try{p.destroy()}catch(x){}if(e.type==="unavailable-id")claim(n+1);else{status("Réseau : "+e.type+" (nouvel essai…)");setTimeout(function(){claim(n)},5000)}}else status("Réseau : "+e.type)})}
   function start(r){room=r;status("Connexion…");if(typeof Peer==="undefined"){status("Réseau indisponible (PeerJS non chargé)");return}claim(1)}
-  return {start:start,bc:bc,hello:hello,capture:capture,upd:updAll,units:function(){return Object.keys(conns).map(function(k){return peers[k]}).filter(function(p){return p&&p.mode!=="dispatch"})}}
+  return {start:start,bc:bc,sendLog:sendLog,hello:hello,capture:capture,upd:updAll,units:function(){return Object.keys(conns).map(function(k){return peers[k]}).filter(function(p){return p&&p.mode!=="dispatch"})}}
 })();
 // ===== Accès par mot de passe =====
 function sha(t){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")})}
