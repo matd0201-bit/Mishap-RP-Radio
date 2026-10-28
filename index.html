@@ -261,9 +261,9 @@ function play(buf,btn){var c=ac();if(!c||st.tx)return;
   var src=c.createBufferSource(),g=c.createGain(),bp=c.createBiquadFilter();
   bp.type="peaking";bp.frequency.value=1800;bp.gain.value=8;g.gain.value=cfg.voice;src.buffer=buf;src.connect(bp);bp.connect(g);g.connect(fx);
   
-  var t=c.currentTime+.05;src.start(t);st.busy=true;setState("RX","rx");if(btn){btn.classList.add("on");btn.textContent="Stop"}refresh0();
+  var t=c.currentTime+.05;src.start(t);var hl=!!buf.air;if(hl)air(1);st.busy=true;setState("RX","rx");if(btn){btn.classList.add("on");btn.textContent="Stop"}refresh0();
   st.cur={stop:function(){try{src.stop()}catch(e){}}};
-  src.onended=function(){st.cur=null;st.busy=false;if(btn){btn.classList.remove("on");btn.textContent="Lire · "+Math.max(1,Math.round(buf.duration))+" s"}refresh()}}
+  src.onended=function(){if(hl){hl=false;air(-1)}st.cur=null;st.busy=false;if(btn){btn.classList.remove("on");btn.textContent="Lire · "+Math.max(1,Math.round(buf.duration))+" s"}refresh()}}
 function refresh0(){$("ptt").disabled=true}
 
 function addLi(txt,cls,buf,ts){var li=document.createElement("li"),t=document.createElement("time"),sp=document.createElement("span"),d=new Date(ts||Date.now()),td=new Date().toDateString()===d.toDateString();
@@ -277,9 +277,9 @@ function packBuf(b){var a=b.getChannelData(0),k=b.sampleRate/16000,n=Math.floor(
 function dbPut(rec){if(!DB)return;try{var tx=DB.transaction("log","readwrite"),st2=tx.objectStore("log");st2.add(rec);
   st2.count().onsuccess=function(e){var n=e.target.result-MAXLOG;if(n>0){st2.openCursor().onsuccess=function(ev){var c=ev.target.result;if(c&&n-->0){c.delete();c.continue()}}}}}catch(e){}}
 function dbAll(cb){if(!DB){cb([]);return}try{var r=DB.transaction("log").objectStore("log").getAll();r.onsuccess=function(){cb((r.result||[]).sort(function(a,b){return a.ts-b.ts}))};r.onerror=function(){cb([])}}catch(e){cb([])}}
-function restoreLog(){dbAll(function(rows){rows.forEach(function(r){var b=null;if(r.pcm&&r.pcm.length&&ac()){b=ctx.createBuffer(1,r.pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<r.pcm.length;i++)d[i]=r.pcm[i]/32767}addLi(r.txt,r.cls,b,r.ts)})})}
+function restoreLog(){dbAll(function(rows){rows.forEach(function(r){var b=null;if(r.pcm&&r.pcm.length&&ac()){b=ctx.createBuffer(1,r.pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<r.pcm.length;i++)d[i]=r.pcm[i]/32767;if(r.air)b.air=1}addLi(r.txt,r.cls,b,r.ts)})})}
 function log(txt,cls,buf){var ts=Date.now();addLi(txt,cls,buf,ts);
-  if(buf||/^(SIGNAL 100|Fin du Signal|Annonce de call|PANIC|Panic)/.test(txt)||/\(écrit\)/.test(txt)||cls==="ann")dbPut({ts:ts,txt:txt,cls:cls||"",pcm:buf?packBuf(buf):null})}
+  if(buf||/^(SIGNAL 100|Fin du Signal|Annonce de call|PANIC|Panic)/.test(txt)||/\(écrit\)/.test(txt)||cls==="ann")dbPut({ts:ts,txt:txt,cls:cls||"",pcm:buf?packBuf(buf):null,air:buf&&buf.air?1:0})}
 function setState(s,c){var e=$("state");e.textContent=s;e.className="state"+(c?" "+c:"")+(s==="SIGNAL 100"?" alert":"");var n=$("snd");if(n)n.className="snd"+(c?" "+c:"")}
 function cs(){return st.mode==="dispatch"?($("dName").value.trim()||"DISPATCH"):($("callsign").value.trim()||"Unité")}
 function pad(n){return n<10?"0"+n:""+n}
@@ -309,17 +309,17 @@ function initMic(cb){if(!navigator.mediaDevices||!navigator.mediaDevices.getUser
   function ok(s){st.asking=false;if(old)old.getTracks().forEach(function(t){t.stop()});setup(s);log("Micro connecté.","sys");listDevices();if(cb)cb()}
   function ko(e){st.asking=false;log("Micro refusé ou bloqué ("+(e&&e.name||"erreur")+"). Autorisez-le dans le navigateur puis rechargez la page.","alert");if(cb)cb()}
   navigator.mediaDevices.getUserMedia({audio:cfg.inId?Object.assign({deviceId:{exact:cfg.inId}},a):a}).then(ok).catch(function(e){if(cfg.inId&&e&&e.name==="OverconstrainedError"){cfg.inId="";save();navigator.mediaDevices.getUserMedia({audio:a}).then(ok).catch(ko)}else ko(e)})}
-function beginTx(){if(st.tx||!st.held)return;st.tx=true;st.pcm=[];$("ptt").classList.add("on");setState("TX","tx");txGate.gain.value=1;net.bc({t:"tx",on:1,ch:st.ch,cs:cs(),mode:st.mode,div:divKey()});sndOpen();startTimer();if(divKey()==="air"){st.myAir=1;air(1)}refresh()}
+function beginTx(){if(st.tx||!st.held)return;st.tx=true;st.pcm=[];$("ptt").classList.add("on");setState("TX","tx");txGate.gain.value=1;net.bc({t:"tx",on:1,ch:st.ch,cs:cs(),mode:st.mode,div:divKey()});sndOpen();startTimer();st.myAir=divKey()==="air"?1:0;refresh()}
 function pttDown(){if(st.tx||st.busy)return;if(st.rx){sndDenied();log("Fréquence occupée : attendez la fin de la transmission.","alert");return}if(blocked()){sndDenied();log("Transmission refusée : "+CHANNELS[st.ch]+" en Signal 100.","alert");return}
   ac();st.held=true;if(!st.src&&!st.asking&&!st.tried){st.tried=1;initMic(beginTx);return}beginTx()}
 function pttUp(){st.held=false;if(!st.tx)return;st.tx=false;$("ptt").classList.remove("on");var d=stopTimer(),who=disp(),chn=CHANNELS[st.ch].split(" · ")[0];
-  if(st.myAir){st.myAir=0;air(-1)}txGate.gain.value=0;net.bc({t:"tx",on:0,ch:st.ch,cs:cs(),mode:st.mode,div:divKey()});sndClose();refresh();
+  var wasAir=st.myAir;st.myAir=0;txGate.gain.value=0;net.bc({t:"tx",on:0,ch:st.ch,cs:cs(),mode:st.mode,div:divKey()});sndClose();refresh();
   if(!st.src){if(d>=1)log(who+" a transmis sur "+chn+" ("+d+" s), sans enregistrement.");return}
   var tot=0,pk=0;st.pcm.forEach(function(x){tot+=x.length;for(var k=0;k<x.length;k+=64){var v=Math.abs(x[k]);if(v>pk)pk=v}});
   if(d<0.3)return;
   if(!tot||pk<0.003){log(who+" a transmis sur "+chn+" ("+d+" s) mais aucun son n’a été capté. Vérifiez le micro sélectionné dans le navigateur.","alert");return}
   var c=ac(),buf=c.createBuffer(1,tot,c.sampleRate),a=buf.getChannelData(0),o=0;st.pcm.forEach(function(x){a.set(x,o);o+=x.length});
-  st.last=buf;log(who+" sur "+chn+" :","",buf);refresh()}
+  if(wasAir)buf.air=1;st.last=buf;log(who+" sur "+chn+" :","",buf);refresh()}
 function pttPress(){if(cfg.pttMode==="toggle"){if(st.tx)pttUp();else pttDown()}else pttDown()}
 function pttRelease(){if(cfg.pttMode!=="toggle")pttUp()}
 var p=$("ptt");
