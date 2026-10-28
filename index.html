@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob: mediastream:; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MISHAP RP RADIO</title>
 <meta name="theme-color" content="#0a0c0f">
@@ -213,7 +215,7 @@ input,select,textarea{font-size:16px}
   <label for="vVoice">Volume des voix <output id="oVoice"></output></label><input type="range" id="vVoice" min="50" max="500" step="10">
   <button class="btn" id="resetSet" style="margin-top:16px;width:100%">Réinitialiser les paramètres</button>
 </div></div>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" referrerpolicy="no-referrer"></script>
 <script>
 (function(){
 var CHANNELS=["Canal 1","Canal 2","Canal 3","Canal 4","Canal 5","Canal 6"];
@@ -409,6 +411,13 @@ $("callsign").addEventListener("input",function(){refresh();net.hello()});
 
 // ===== Réseau : PeerJS (signalisation gratuite) + WebRTC audio en maillage =====
 var GATE="def5a8bbb89dfce3c0a192a6fcc90154e06833c234aa8ab3d696a8fa74489eed",MAXP=16,ICE=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"}];
+// ===== Masquage des IP : serveur relais TURN =====
+// Renseigner ces 3 valeurs pour que TOUT l'audio passe par ton relais : les autres joueurs ne voient plus ton IP (seul le relais la voit).
+// Laisser TURN_URLS vide = comportement actuel (connexion directe, IP visibles entre joueurs).
+// Exemple : TURN_URLS=["turns:turn.mondomaine.fr:443?transport=tcp","turn:turn.mondomaine.fr:3478"]
+var TURN_URLS=[],TURN_USER="",TURN_PASS="";
+var RELAY=TURN_URLS.length>0;
+if(RELAY)ICE=[{urls:TURN_URLS,username:TURN_USER,credential:TURN_PASS}];
 var net=(function(){
   var room="",me={slot:0,peer:null},conns={},calls={},pend={},peers={},active=0,rc=[],rcWho="",rcCh=0;
   function pid(n){return "mishap-"+room+"-"+n}
@@ -454,7 +463,7 @@ var net=(function(){
   function probe(){if(!me.peer||me.peer.disconnected)return;var mx=me.slot;Object.keys(conns).forEach(function(k){mx=Math.max(mx,slotOf(k))});
     for(var n=1;n<=Math.min(MAXP,mx+2);n++){var id=pid(n);if(n===me.slot||conns[id])continue;if(pend[id]&&Date.now()-pend[id]<9000)continue;pend[id]=Date.now();try{wire(me.peer.connect(id,{reliable:true}),true)}catch(e){}}}
   function claim(n){if(n>MAXP){status("Salle pleine ("+MAXP+" max)");return}
-    var p=new Peer(pid(n),{config:{iceServers:ICE}});
+    var p=new Peer(pid(n),{config:{iceServers:ICE,iceTransportPolicy:RELAY?"relay":"all"}});
     p.on("open",function(){me.peer=p;me.slot=n;p.on("connection",function(c){wire(c,false)});p.on("call",function(c){c.answer(outDest.stream);bindCall(c)});
       p.on("disconnected",function(){try{p.reconnect()}catch(e){}});status();log("Réseau prêt (emplacement "+n+").","sys");probe();setInterval(probe,6000)});
     p.on("error",function(e){if(e.type==="peer-unavailable")return;
@@ -466,10 +475,10 @@ var net=(function(){
 function sha(t){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")})}
 function enter(){var pw=$("pw").value;if(!window.crypto||!crypto.subtle){$("gerr").textContent="HTTPS requis : hébergez la page en https.";return}
   sha("gate:"+pw).then(function(h){if(h!==GATE){$("gerr").textContent="Mot de passe incorrect.";return}
-    try{localStorage.setItem("mishapPw",pw)}catch(e){}
+    try{localStorage.removeItem("mishapPw")}catch(e){}
     sha("room:"+pw).then(function(r){$("gate").classList.add("hidden");document.querySelector("main").classList.remove("hidden");ac();applySink();st.tried=1;dbOpen(restoreLog);initMic(function(){net.start(r.slice(0,12));net.hello()})})})}
 $("enter").onclick=enter;$("pw").addEventListener("keydown",function(e){if(e.key==="Enter")enter()});
-try{var sp=localStorage.getItem("mishapPw");if(sp)$("pw").value=sp}catch(e){}
+try{localStorage.removeItem("mishapPw")}catch(e){}
 
 // ===== Profil =====
 function divKey(){return st.mode==="dispatch"?"dispatch":$("division").value}
