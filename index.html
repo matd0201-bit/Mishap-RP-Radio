@@ -157,15 +157,17 @@ input,select,textarea{font-size:16px}
 .logH{margin:0 0 8px}
 .logList:empty::before{content:attr(data-empty);display:block;padding:8px 0;color:var(--mute);font-size:12px}
 .unitNotice{display:none;background:#0f2038;border:1px solid #2c5fb3;color:#8db8ff;font-weight:700;letter-spacing:.08em;text-align:center;padding:12px 14px;border-radius:10px}.unitNotice.show{display:block}
-
+/* Couleurs de statut limitées à quatre catégories */
+.stt{--c:#4c8dff}.stt[data-s=dispo],.sttSel[data-s=dispo]{--c:#2fbf71}.stt[data-s=indispo],.sttSel[data-s=indispo]{--c:#e5484d}.stt[data-s=occupe],.sttSel[data-s=occupe]{--c:#f28c28}.stt[data-s=enroute],.stt[data-s=onscene],.stt[data-s=invest],.stt[data-s=repas],.stt[data-s=pursuit],.stt[data-s=trafficstop],.stt[data-s=retourstation],.sttSel[data-s=enroute],.sttSel[data-s=onscene],.sttSel[data-s=invest],.sttSel[data-s=repas],.sttSel[data-s=pursuit],.sttSel[data-s=trafficstop],.sttSel[data-s=retourstation]{--c:#4c8dff}
 .stt{display:inline-block;margin-top:4px;font-size:11px;font-weight:600;letter-spacing:.04em;padding:1px 9px;border-radius:999px;border:1px solid var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
 .sttSel{width:auto;max-width:100%;min-height:32px;margin-top:4px;padding:3px 8px;font-size:13px;font-weight:600;border-color:var(--c);color:var(--c)}
 .sttSel option{background:var(--in);color:var(--text)}
 .sttGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 
-.sbtn{background:var(--s2);border:1px solid var(--line);border-left:4px solid var(--c);color:var(--text);border-radius:8px;padding:9px 10px;font-weight:500;text-align:left;cursor:pointer}
-.sbtn:hover{border-color:var(--c)}
-.sbtn[aria-pressed=true]{outline:2px solid #2fbf71;outline-offset:1px;font-weight:600}
+ .sbtn{background:var(--s2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 12px;font-weight:600;text-align:center;cursor:pointer;min-height:44px;transition:border-color .15s,background .15s}
+.sbtn:hover{border-color:var(--line2);background:var(--panel)}
+.sbtn[aria-pressed=true]{background:var(--panel);border-color:var(--blue);color:var(--text);box-shadow:inset 0 0 0 1px var(--blue)}
+.sttSel[data-s=dispo]{border-color:#2fbf71}.sttSel[data-s=indispo]{border-color:#e5484d}.sttSel[data-s=occupe]{border-color:#f28c28}.sttSel[data-s=enroute],.sttSel[data-s=onscene],.sttSel[data-s=invest],.sttSel[data-s=repas],.sttSel[data-s=pursuit],.sttSel[data-s=trafficstop],.sttSel[data-s=retourstation]{border-color:#4c8dff}
 #myStatus h3{margin-top:18px}
 .bgRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
@@ -176,15 +178,6 @@ input,select,textarea{font-size:16px}
 .row select{flex:1;min-width:0}
 #annList{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));margin-top:12px}
 .inc.ann{border-left:3px solid var(--blue)}
-.stt[data-s],.sbtn[data-s],.sttSel[data-s]{--c:#4c8dff}
-.stt[data-s=dispo],.sbtn[data-s=dispo],.sttSel[data-s=dispo]{--c:#2fbf71}
-.stt[data-s=occupe],.sbtn[data-s=occupe],.sttSel[data-s=occupe]{--c:#f28c28}
-.stt[data-s=indispo],.sbtn[data-s=indispo],.sttSel[data-s=indispo]{--c:#e5484d}
-.profOk{min-height:18px;margin-top:8px;font-size:12px;color:#2fbf71;opacity:0;transition:opacity .2s}.profOk.show{opacity:1}
-.logBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 4px}.logBar select{flex:1;min-width:200px}
-.logInfo{text-align:left;margin:0 0 12px}
-#noteArea{min-height:140px;resize:vertical;font-family:inherit}
-.noteStat{font-size:12px;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -227,7 +220,7 @@ input,select,textarea{font-size:16px}
       <label for="dName">Nom ou indicatif du dispatcher</label><input id="dName" placeholder="Ex. Dispatch Central" maxlength="30" autocomplete="off">
       <label for="dService">Service</label><input id="dService" placeholder="Ex. LSPD" maxlength="20" autocomplete="off">
       </div>
-      <div id="profOk" class="profOk" role="status" aria-live="polite"></div>
+      <button class="btn full" id="profSaveBtn" type="button" style="margin-top:12px">Sauvegarder</button>
     </div></details>
   <div class="chsel" id="chsel"><button class="arrow" id="chPrev" aria-label="Canal précédent"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><div class="chmid"><span class="lab">Canal</span><span id="chName">CANAL 1</span><span id="chStatus" class="chConnStatus" aria-live="polite"></span></div><button class="arrow" id="chNext" aria-label="Canal suivant"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
   <div class="status"><span id="state" class="state">LIBRE</span><span class="conn"><i class="gdot" id="gdot"></i><span id="connTxt">Hors ligne</span></span><span class="hidden"><span id="cs"></span><small id="timer">00:00</small></span><button class="pwr" id="pwr" aria-pressed="true" title="Radio ON/OFF"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg><span id="pwrTxt">ON</span></button></div>
@@ -277,16 +270,9 @@ input,select,textarea{font-size:16px}
   </div>
   <div id="annList"></div>
 </section>
-<section class="panel wide hidden" id="notePanel">
-  <div class="panelHead"><h2>Bloc-notes</h2><span class="noteStat" id="noteStat"></span></div>
-  <textarea id="noteArea" rows="8" maxlength="20000" placeholder="Notes du dispatch (BOLO en cours, rappels, plaques…)" aria-label="Bloc-notes dispatch"></textarea>
-  <div class="row" style="margin-top:8px"><button class="btn small" id="noteTime" type="button">Insérer l’heure</button><button class="btn small" id="noteClear" type="button">Effacer</button></div>
-  <div class="hint" style="text-align:left">Visible uniquement par vous, enregistré sur cet appareil.</div>
-</section>
 <section class="panel wide">
   <div class="panelHead"><h2>Journal des transmissions</h2><button class="btn small" id="clearLog">Effacer</button></div>
-  <div class="logBar"><select id="logDay" aria-label="Date du journal"></select><button class="btn small" id="logExport" type="button">Exporter (.txt)</button></div>
-  <div class="hint logInfo" id="logDayInfo"></div>
+  <div class="row" style="margin:0 0 12px;align-items:center;gap:10px"><label for="logDate" style="margin:0;white-space:nowrap">Date</label><select id="logDate" aria-label="Filtrer le journal par date" style="max-width:260px"><option value="all">Toutes les dates</option></select></div>
   <div class="logCols"><div class="logCol"><h3 class="logH">Communications radio</h3><ul id="logRadio" class="logList" data-empty="Aucune communication radio."></ul></div><div class="logCol"><h3 class="logH">Informations écrites</h3><ul id="logText" class="logList" data-empty="Aucune information écrite."></ul></div></div>
   <div class="hint" style="text-align:left">Historique conservé sur cet appareil et synchronisé avec les utilisateurs connectés.</div>
 </section>
@@ -327,7 +313,7 @@ var cfg={sfx:1,voice:1,alert:1,bg:"#0a0c0f",panel:"#11141a",inId:"",outId:"",pro
 try{var j=JSON.parse(localStorage.getItem("mishapRadio")||"null");if(j){cfg.sfx=Math.max(.01,Math.min(1,Number(j.sfx)||1));cfg.voice=Math.max(.01,Math.min(1,Number(j.voice)||1));cfg.alert=(j.alert===undefined||isNaN(Number(j.alert)))?1:Math.max(0,Math.min(1,Number(j.alert)));cfg.bg=/^#[0-9a-f]{6}$/i.test(j.bg||"")?j.bg:"#0a0c0f";cfg.panel=/^#[0-9a-f]{6}$/i.test(j.panel||"")?j.panel:"#11141a";cfg.keys=j.keys||{};delete cfg.keys.call;cfg.inId=j.inId||"";cfg.outId=j.outId||"";cfg.prof=j.prof||null;cfg.dprof=j.dprof||null;cfg.pttMode=j.pttMode==="toggle"?"toggle":"hold"}}catch(e){}
 function save(){try{localStorage.setItem("mishapRadio",JSON.stringify(cfg))}catch(e){}}
 // Statuts (Dispatch + Unité)
-var STT={dispo:{l:"Disponible"},occupe:{l:"Occupé"},indispo:{l:"Indisponible"},enroute:{l:"En Route"},onscene:{l:"On Scene"},traffic:{l:"Traffic Stop"},invest:{l:"Investigation"},pursuit:{l:"In Pursuit"},repas:{l:"Pause Repas"},retour:{l:"Retour Station"}};
+var STT={dispo:{l:"Disponible"},occupe:{l:"Occupé"},indispo:{l:"Indisponible"},enroute:{l:"En Route"},onscene:{l:"On Scene"},invest:{l:"Investigation"},repas:{l:"Pause Repas"},pursuit:{l:"In Pursuit"},trafficstop:{l:"Traffic Stop"},retourstation:{l:"Retour Station"}};
 function sttOk(k){return Object.prototype.hasOwnProperty.call(STT,String(k))?String(k):"dispo"}
 // Journal : radio (gauche) / écrit (droite)
 var RADIO_RE=/(a transmis sur Canal \d+ \(\d+ s\)| sur Canal \d+ :$)/;
@@ -385,65 +371,37 @@ try{localUserId=localStorage.getItem("mishapUserId")||"";if(!localUserId){localU
 var seenLogs=Object.create(null),deletedLogs=Object.create(null);
 try{var dl=JSON.parse(localStorage.getItem("mishapLogDeleted")||"[]");dl.forEach(function(id){deletedLogs[id]=1})}catch(e){}
 function saveDeleted(){try{localStorage.setItem("mishapLogDeleted",JSON.stringify(Object.keys(deletedLogs)))}catch(e){}}
-function addLi(rec,buf,arch){
-  if(!arch&&(viewDay!=="live"||dayKey(rec.ts)!==dayKey(Date.now())))return;
-  var li=document.createElement("li"),t=document.createElement("time"),sp=document.createElement("span"),d=new Date(+rec.ts||Date.now());
+var currentLogDate="all",logDateValues=Object.create(null);
+function logDateKey(ts){var d=new Date(ts||Date.now());return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function syncLogDates(rows){var sel=$("logDate");if(!sel)return;var dates=Object.create(null);(rows||[]).forEach(function(r){if(r&&r.ts)dates[logDateKey(r.ts)]=1});Object.keys(logDateValues).forEach(function(k){dates[k]=1});var keys=Object.keys(dates).sort().reverse(),old=sel.value;sel.innerHTML="";var all=document.createElement("option");all.value="all";all.textContent="Toutes les dates";sel.appendChild(all);keys.forEach(function(k){var a=k.split("-"),o=document.createElement("option");o.value=k;o.textContent=a[2]+"/"+a[1]+"/"+a[0];sel.appendChild(o)});sel.value=keys.indexOf(old)>=0?old:"all";currentLogDate=sel.value}
+function addLi(rec,buf){var li=document.createElement("li"),t=document.createElement("time"),sp=document.createElement("span"),d=new Date(rec.ts||Date.now()),td=new Date().toDateString()===d.toDateString();
+  var hasPlayable=!!buf;if(currentLogDate!=="all"&&logDateKey(rec.ts)!==currentLogDate)return;
   li.dataset.logUid=rec.uid||"";
-  t.textContent=d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  sp.textContent=rec.txt||"";if(rec.cls)sp.className=rec.cls;
+  t.textContent=td?d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}):d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+  var logText=String(rec.txt||"");if(!hasPlayable)logText=logText.replace(/(a transmis sur Canal \d+)\s*:\s*$/i,"$1");sp.textContent=logText;if(rec.cls)sp.className=rec.cls;
   if(buf){var b=document.createElement("button");b.className="play";b.textContent="Lire · "+Math.max(1,Math.round(buf.duration))+" s";b.setAttribute("aria-label","Réécouter");b.onclick=function(){play(buf,b)};sp.appendChild(b)}
-  else if(arch&&rec.pcm&&rec.pcm.length){var pb=document.createElement("button");pb.className="play";pb.textContent="Lire · "+Math.max(1,Math.round(rec.pcm.length/16000))+" s";pb.setAttribute("aria-label","Réécouter");pb.onclick=function(){var c=ac();if(!c)return;var b2=c.createBuffer(1,rec.pcm.length,16000),dd=b2.getChannelData(0);for(var q=0;q<rec.pcm.length;q++)dd[q]=rec.pcm[q]/32767;if(rec.air)b2.air=1;play(b2,pb)};sp.appendChild(pb)}
-  if(!arch&&rec.owner===localUserId&&rec.uid){var del=document.createElement("button");del.className="play";del.textContent="Supprimer pour tous";del.setAttribute("aria-label","Supprimer ce message pour tous");del.onclick=function(){if(confirm("Supprimer ce message pour tous les utilisateurs connectés ?"))deleteLog(rec.uid,false)};sp.appendChild(del)}
-  li.appendChild(t);li.appendChild(sp);var L=$(recKind(rec)==="radio"?"logRadio":"logText");
-  if(arch)L.appendChild(li);else{L.insertBefore(li,L.firstChild);while(L.children.length>150)L.removeChild(L.lastChild)}}
-var DB=null,MAXLOG=150,viewDay="live",dbQ=[],dayProfSig="",showTok=0,lastDayKey="";
-function dbOpen(cb){try{var r=indexedDB.open("mishapRadio",2);
-  r.onupgradeneeded=function(){var db=r.result,tx=r.transaction,lg=db.objectStoreNames.contains("log")?tx.objectStore("log"):db.createObjectStore("log",{keyPath:"id",autoIncrement:true});if(!lg.indexNames.contains("ts"))lg.createIndex("ts","ts");if(!lg.indexNames.contains("uid"))lg.createIndex("uid","uid");if(!db.objectStoreNames.contains("days"))db.createObjectStore("days",{keyPath:"day"})};
-  r.onsuccess=function(){DB=r.result;DB.onversionchange=function(){try{DB.close()}catch(e){}DB=null};try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}daysMigrate(function(){var q=dbQ;dbQ=[];q.forEach(dbPut);cb()})};
-  r.onerror=function(){cb()}}catch(e){cb()}}
+  if(rec.owner===localUserId&&rec.uid){var del=document.createElement("button");del.className="play";del.textContent="Supprimer pour tous";del.setAttribute("aria-label","Supprimer ce message pour tous");del.onclick=function(){if(confirm("Supprimer ce message pour tous les utilisateurs connectés ?"))deleteLog(rec.uid,false)};sp.appendChild(del)}
+  li.appendChild(t);li.appendChild(sp);var L=$(recKind(rec)==="radio"?"logRadio":"logText");L.insertBefore(li,L.firstChild)}
+var DB=null,MAXLOG=150;
+function dbOpen(cb){try{var r=indexedDB.open("mishapRadio",1);r.onupgradeneeded=function(){r.result.createObjectStore("log",{keyPath:"id",autoIncrement:true})};r.onsuccess=function(){DB=r.result;cb()};r.onerror=function(){cb()}}catch(e){cb()}}
 function packBuf(b){var a=b.getChannelData(0),k=b.sampleRate/16000,n=Math.floor(a.length/k),o=new Int16Array(n);for(var i=0;i<n;i++){var p=Math.floor(i*k),q=Math.min(a.length,Math.max(p+1,Math.floor((i+1)*k))),v=0;for(var x=p;x<q;x++)v+=a[x];v/=(q-p);o[i]=Math.max(-1,Math.min(1,v))*32767}return o}
-function dbPut(rec){if(!DB){if(dbQ.length<500)dbQ.push(rec);return}try{var tx=DB.transaction(["log","days"],"readwrite"),k=dayKey(rec.ts),dd=tx.objectStore("days"),g;tx.objectStore("log").add(rec);g=dd.get(k);g.onsuccess=function(){var v=g.result||{day:k,n:0,radio:0,text:0,cs:[]};if(rec.cls!=="sys"){if(recKind(rec)==="radio")v.radio++;else v.text++;v.n=v.radio+v.text}dd.put(v)}}catch(e){}}
+function dbPut(rec){if(!DB)return;try{var tx=DB.transaction("log","readwrite"),st2=tx.objectStore("log");st2.add(rec)}catch(e){}}
 function dbAll(cb){if(!DB){cb([]);return}try{var r=DB.transaction("log").objectStore("log").getAll();r.onsuccess=function(){cb((r.result||[]).sort(function(a,b){return a.ts-b.ts}))};r.onerror=function(){cb([])}}catch(e){cb([])}}
 function deletedUid(uid){if(!uid)return;deletedLogs[uid]=1;saveDeleted();["logRadio","logText"].forEach(function(id){Array.prototype.slice.call($(id).children).forEach(function(li){if(li.dataset.logUid===uid)li.remove()})});
-  if(DB)try{var tx=DB.transaction(["log","days"],"readwrite"),r=tx.objectStore("log").index("uid").openCursor(IDBKeyRange.only(uid));r.onsuccess=function(){var c=r.result;if(!c)return;var v=c.value;c.delete();dayDec(tx,v);c.continue()}}catch(e){}}
+  if(DB)try{var tx=DB.transaction("log","readwrite"),st2=tx.objectStore("log"),r=st2.openCursor();r.onsuccess=function(){var c=r.result;if(!c)return;if(c.value&&c.value.uid===uid)c.delete();c.continue()}}catch(e){}}
 function deleteLog(uid,remote){if(!uid)return;deletedUid(uid);if(!remote&&typeof net!=="undefined"&&net)net.bc({t:"logDelete",uid:uid,owner:localUserId})}
 function recForWire(rec){return {uid:rec.uid,owner:rec.owner,author:rec.author,ts:rec.ts,txt:rec.txt,cls:rec.cls||"",pcm:null,air:rec.air||0,kind:recKind(rec),note:rec.note?1:0}}
-function receiveLog(input){if(!input||!input.uid||deletedLogs[input.uid]||seenLogs[input.uid])return;var raw=input.pcm||null,pcm=null;try{if(raw){if(raw instanceof Int16Array)pcm=raw;else if(raw instanceof ArrayBuffer)pcm=new Int16Array(raw);else if(raw.buffer&&raw.length!==undefined)pcm=new Int16Array(raw.buffer,raw.byteOffset||0,raw.length);else if(Array.isArray(raw))pcm=new Int16Array(raw)}}catch(e){}var rec={uid:String(input.uid).slice(0,100),owner:String(input.owner||"").slice(0,100),author:String(input.author||"").slice(0,60),ts:+input.ts||Date.now(),txt:String(input.txt||"").slice(0,1000),cls:String(input.cls||"").slice(0,30),pcm:pcm,air:input.air?1:0,kind:(input.kind==="radio"||input.kind==="text")?input.kind:undefined,note:(input.note||/ \(écrit\) : /.test(String(input.txt||"")))?1:0};if(!rec.uid||deletedLogs[rec.uid])return;seenLogs[rec.uid]=1;dbPut(rec);var b=null;if(pcm&&pcm.length&&ac()){b=ctx.createBuffer(1,pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<pcm.length;i++)d[i]=pcm[i]/32767;if(rec.air)b.air=1}addLi(rec,b);if(rec.note&&Date.now()-rec.ts<15000)playNotif()}
+function receiveLog(input){if(!input||!input.uid||deletedLogs[input.uid]||seenLogs[input.uid])return;var raw=input.pcm||null,pcm=null;try{if(raw){if(raw instanceof Int16Array)pcm=raw;else if(raw instanceof ArrayBuffer)pcm=new Int16Array(raw);else if(raw.buffer&&raw.length!==undefined)pcm=new Int16Array(raw.buffer,raw.byteOffset||0,raw.length);else if(Array.isArray(raw))pcm=new Int16Array(raw)}}catch(e){}var rec={uid:String(input.uid).slice(0,100),owner:String(input.owner||"").slice(0,100),author:String(input.author||"").slice(0,60),ts:+input.ts||Date.now(),txt:String(input.txt||"").slice(0,1000),cls:String(input.cls||"").slice(0,30),pcm:pcm,air:input.air?1:0,kind:(input.kind==="radio"||input.kind==="text")?input.kind:undefined,note:(input.note||/ \(écrit\) : /.test(String(input.txt||"")))?1:0};if(!rec.uid||deletedLogs[rec.uid])return;seenLogs[rec.uid]=1;logDateValues[logDateKey(rec.ts)]=1;syncLogDates([]);dbPut(rec);var b=null;if(pcm&&pcm.length&&ac()){b=ctx.createBuffer(1,pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<pcm.length;i++)d[i]=pcm[i]/32767;if(rec.air)b.air=1}addLi(rec,b);if(rec.note&&Date.now()-rec.ts<15000)playNotif()}
 var pendingLogAudio=Object.create(null);
 function addLogPlayButton(uid,b){var li=document.querySelector('.logList>li[data-log-uid="'+String(uid).replace(/["\\]/g,"")+'"]');if(!li)return;var sp=li.querySelector("span");if(!sp||sp.querySelector('button[aria-label="Réécouter"]'))return;var btn=document.createElement("button");btn.className="play";btn.textContent="Lire · "+Math.max(1,Math.round(b.duration))+" s";btn.setAttribute("aria-label","Réécouter");btn.onclick=function(){play(b,btn)};sp.appendChild(btn)}
-function dbUpdateLogAudio(uid,pcm,airFlag){if(!DB)return;try{var tx=DB.transaction("log","readwrite"),r=tx.objectStore("log").index("uid").openCursor(IDBKeyRange.only(uid));r.onsuccess=function(){var c=r.result;if(!c)return;var v=c.value;v.pcm=pcm;v.air=airFlag?1:0;c.update(v)}}catch(e){}}
+function dbUpdateLogAudio(uid,pcm,airFlag){if(!DB)return;try{var tx=DB.transaction("log","readwrite"),store=tx.objectStore("log"),r=store.openCursor();r.onsuccess=function(){var c=r.result;if(!c)return;if(c.value&&c.value.uid===uid){var v=c.value;v.pcm=pcm;v.air=airFlag?1:0;c.update(v);return}c.continue()}}catch(e){}}
 function receiveLogAudio(m){if(!m||!m.uid||!Array.isArray(m.pcm))return;var uid=String(m.uid).slice(0,100),total=+m.total,index=+m.index,parts=+m.parts;if(!uid||!(total>0)||total>600000||!(parts>0)||parts>400||index<0||index>=parts||Math.floor(index)!==index)return;var x=pendingLogAudio[uid];if(!x||x.total!==total||x.parts!==parts){x=pendingLogAudio[uid]={total:total,parts:parts,chunks:new Array(parts),count:0,air:!!m.air}}if(!x.chunks[index]){x.chunks[index]=new Int16Array(m.pcm);x.count++}if(x.count<parts)return;var pcm=new Int16Array(total),offset=0;for(var i=0;i<parts;i++){var part=x.chunks[i];if(!part)return;if(offset+part.length>total)part=part.subarray(0,total-offset);pcm.set(part,offset);offset+=part.length}delete pendingLogAudio[uid];if(offset<total)return;var b=null;if(ac()){b=ctx.createBuffer(1,pcm.length,16000);var d=b.getChannelData(0);for(var k=0;k<pcm.length;k++)d[k]=pcm[k]/32767;if(x.air)b.air=1}dbUpdateLogAudio(uid,pcm,x.air);if(b)addLogPlayButton(uid,b)}
-function restoreLog(){dbLoadSeen(function(){fillDaySel();showDay("live");dayProf()})}
-// ----- Journal par jour : sauvegarde complète, indicatif du jour, sélecteur de date -----
-function dayKey(ts){var d=new Date(+ts||Date.now());return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
-function dayRange(k){var p=k.split("-"),y=+p[0],m=+p[1]-1,d=+p[2];return [new Date(y,m,d).getTime(),new Date(y,m,d+1).getTime()]}
-function fmtDay(k){var p=k.split("-"),t=new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});return t.charAt(0).toUpperCase()+t.slice(1)}
-function csText(l){return l.map(function(x){return x.name+(x.det?" ("+x.det+")":"")}).join(" → ")}
-function dbRange(from,to,cb){if(!DB){cb([]);return}try{var r=DB.transaction("log").objectStore("log").index("ts").getAll(IDBKeyRange.bound(from,to,false,true));r.onsuccess=function(){cb(r.result||[])};r.onerror=function(){cb([])}}catch(e){cb([])}}
-function dbDays(cb){if(!DB){cb([]);return}try{var r=DB.transaction("days").objectStore("days").getAll();r.onsuccess=function(){cb(r.result||[])};r.onerror=function(){cb([])}}catch(e){cb([])}}
-function dbGetDay(k,cb){if(!DB){cb(null);return}try{var r=DB.transaction("days").objectStore("days").get(k);r.onsuccess=function(){cb(r.result||null)};r.onerror=function(){cb(null)}}catch(e){cb(null)}}
-function dbLoadSeen(cb){if(!DB){cb();return}try{var r=DB.transaction("log").objectStore("log").index("uid").openKeyCursor();r.onsuccess=function(){var c=r.result;if(c){seenLogs[c.key]=1;c.continue()}else cb()};r.onerror=function(){cb()}}catch(e){cb()}}
-function dayDec(tx,rec){var dd=tx.objectStore("days"),g=dd.get(dayKey(rec.ts));g.onsuccess=function(){var v=g.result;if(!v)return;if(rec.cls!=="sys"){if(recKind(rec)==="radio")v.radio=Math.max(0,v.radio-1);else v.text=Math.max(0,v.text-1);v.n=v.radio+v.text}dd.put(v)}}
-function daysMigrate(cb){var done=false;function fin(){if(!done){done=true;cb()}}try{var c=DB.transaction("days").objectStore("days").count();c.onsuccess=function(){if(c.result>0){fin();return}var map={},tx=DB.transaction(["log","days"],"readwrite"),cur=tx.objectStore("log").openCursor();
-  cur.onsuccess=function(){var x=cur.result;if(x){var r=x.value,k=dayKey(r.ts),v=map[k]||(map[k]={day:k,n:0,radio:0,text:0,cs:[]});if(r.cls!=="sys"){if(recKind(r)==="radio")v.radio++;else v.text++;v.n=v.radio+v.text}if(r.owner===localUserId&&r.author&&v.cs.every(function(y){return y.name!==r.author}))v.cs.push({name:r.author,mode:"",det:"",ts:r.ts});x.continue()}else Object.keys(map).forEach(function(k){tx.objectStore("days").put(map[k])})};
-  tx.oncomplete=fin;tx.onerror=fin;tx.onabort=fin};c.onerror=fin}catch(e){fin()}}
-function dayInfoShow(v){var e=$("logDayInfo"),c=(v&&v.cs)||[];if(!c.length&&viewDay==="live")e.textContent="Indicatif utilisé aujourd’hui : "+cs();else e.textContent=c.length?(c.length>1?"Indicatifs utilisés ce jour-là : ":"Indicatif utilisé ce jour-là : ")+csText(c):"Indicatif non enregistré pour ce jour."}
-function dayProf(){if(!DB)return;var unit=st.mode!=="dispatch",name=cs();if(unit&&!$("callsign").value.trim())return;var det=(unit?[gradev(),divLabel(),svcv()]:[svcv()]).filter(Boolean).join(" · "),k=dayKey(Date.now()),sig=k+"|"+st.mode+"|"+name+"|"+det;if(sig===dayProfSig)return;dayProfSig=sig;
-  try{var tx=DB.transaction("days","readwrite"),os=tx.objectStore("days"),g=os.get(k);g.onsuccess=function(){var v=g.result||{day:k,n:0,radio:0,text:0,cs:[]},l=v.cs||(v.cs=[]),last=l[l.length-1];if(!last||last.name!==name||last.mode!==st.mode||last.det!==det)l.push({name:name,mode:st.mode,det:det,ts:Date.now()});os.put(v);if(viewDay==="live")dayInfoShow(v)}}catch(e){dayProfSig=""}}
-function fillDaySel(){dbDays(function(list){var sel=$("logDay"),cur=viewDay,t=dayKey(Date.now());lastDayKey=t;sel.innerHTML="";var o=document.createElement("option");o.value="live";o.textContent="Aujourd’hui (en direct)";sel.appendChild(o);
-  list.filter(function(d){return d.day!==t&&d.n>0}).sort(function(a,b){return a.day<b.day?1:-1}).forEach(function(d){var op=document.createElement("option");op.value=d.day;op.textContent=fmtDay(d.day)+" · "+d.n+" message"+(d.n>1?"s":"");sel.appendChild(op)});
-  var ok=false;Array.prototype.forEach.call(sel.options,function(x){if(x.value===cur)ok=true});sel.value=ok?cur:"live";if(!ok&&viewDay!=="live")showDay("live")})}
-function showDay(k){viewDay=k;var tok=++showTok;$("logDay").value=k;$("logRadio").innerHTML="";$("logText").innerHTML="";var live=k==="live",rg=dayRange(live?dayKey(Date.now()):k);
-  dbGetDay(live?dayKey(Date.now()):k,function(v){if(tok===showTok)dayInfoShow(v)});
-  dbRange(rg[0],rg[1],function(rows){if(tok!==showTok)return;rows.forEach(function(r){if(r.uid&&deletedLogs[r.uid])return;if(!live){addLi(r,null,true);return}
-    if(r.uid)seenLogs[r.uid]=1;var b=null;if(r.pcm&&r.pcm.length&&ac()){b=ctx.createBuffer(1,r.pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<r.pcm.length;i++)d[i]=r.pcm[i]/32767;if(r.air)b.air=1}addLi(r,b)})})}
-function clearDay(k,cb){if(!DB){cb();return}try{var rg=dayRange(k),tx=DB.transaction(["log","days"],"readwrite"),r=tx.objectStore("log").index("ts").openCursor(IDBKeyRange.bound(rg[0],rg[1],false,true));r.onsuccess=function(){var c=r.result;if(c){c.delete();c.continue()}};tx.objectStore("days").delete(k);tx.oncomplete=function(){cb()};tx.onerror=tx.onabort=function(){cb()}}catch(e){cb()}}
-function exportDay(){var k=viewDay==="live"?dayKey(Date.now()):viewDay,rg=dayRange(k);dbRange(rg[0],rg[1],function(rows){dbGetDay(k,function(v){var c=(v&&v.cs)||[],L=["Journal du "+fmtDay(k)];if(c.length)L.push((c.length>1?"Indicatifs utilisés : ":"Indicatif utilisé : ")+csText(c));L.push("");
-  rows.forEach(function(r){if(r.uid&&deletedLogs[r.uid])return;L.push("["+new Date(r.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+"] "+(recKind(r)==="radio"?"RADIO":"ÉCRIT")+" – "+r.txt+(r.pcm&&r.pcm.length?" [audio enregistré]":""))});
-  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([L.join("\n")],{type:"text/plain;charset=utf-8"}));a.download="journal-"+k+".txt";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000)})})}
-function log(txt,cls,buf,owned,share,note){var ts=Date.now(),uid=localUserId+":"+ts.toString(36)+":"+Math.random().toString(36).slice(2,8);var rec={uid:uid,owner:owned?localUserId:"",author:cs(),ts:ts,txt:String(txt||"").slice(0,1000),cls:cls||"",pcm:buf?packBuf(buf):null,air:buf&&buf.air?1:0,kind:(buf||RADIO_RE.test(String(txt||"")))?"radio":"text",note:note?1:0};seenLogs[uid]=1;addLi(rec,buf||null);dbPut(rec);dayProf();if(share!==false&&typeof net!=="undefined"&&net)net.sendLog(rec)}
+function restoreLog(){dbAll(function(rows){syncLogDates(rows.filter(function(r){return r.uid&&!deletedLogs[r.uid]}));rows.forEach(function(r){if(!r.uid||deletedLogs[r.uid])return;seenLogs[r.uid]=1;logDateValues[logDateKey(r.ts)]=1;var b=null;if(r.pcm&&r.pcm.length&&ac()){b=ctx.createBuffer(1,r.pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<r.pcm.length;i++)d[i]=r.pcm[i]/32767;if(r.air)b.air=1}addLi(r,b)});});}
+function renderLogDate(){var sel=$("logDate");currentLogDate=sel?sel.value:"all";dbAll(function(rows){$("logRadio").innerHTML="";$("logText").innerHTML="";syncLogDates(rows.filter(function(r){return r.uid&&!deletedLogs[r.uid]}));currentLogDate=sel?sel.value:"all";rows.forEach(function(r){if(!r.uid||deletedLogs[r.uid])return;var b=null;if(r.pcm&&r.pcm.length&&ac()){b=ctx.createBuffer(1,r.pcm.length,16000);var d=b.getChannelData(0);for(var i=0;i<r.pcm.length;i++)d[i]=r.pcm[i]/32767;if(r.air)b.air=1}addLi(r,b)})})}
+$("logDate").addEventListener("change",renderLogDate);
+function log(txt,cls,buf,owned,share,note){var ts=Date.now(),uid=localUserId+":"+ts.toString(36)+":"+Math.random().toString(36).slice(2,8);var rec={uid:uid,owner:owned?localUserId:"",author:cs(),ts:ts,txt:String(txt||"").slice(0,1000),cls:cls||"",pcm:buf?packBuf(buf):null,air:buf&&buf.air?1:0,kind:(buf||RADIO_RE.test(String(txt||"")))?"radio":"text",note:note?1:0};seenLogs[uid]=1;logDateValues[logDateKey(ts)]=1;syncLogDates([]);addLi(rec,buf||null);dbPut(rec);if(share!==false&&typeof net!=="undefined"&&net)net.sendLog(rec)}
 function setState(s,c){var e=$("state");e.textContent=s;e.className="state"+(c?" "+c:"")+(s==="SIGNAL 100"?" alert":"");var n=$("snd");if(n)n.className="snd"+(c?" "+c:"")}
-function cs(){return st.mode==="dispatch"?($("dName").value.trim()||"DISPATCH"):($("callsign").value.trim()||"Unité")}
+function cs(){return st.mode==="dispatch"?((cfg.dprof&&cfg.dprof.name||"").trim()||"DISPATCH"):((cfg.prof&&cfg.prof.cs||"").trim()||"Unité")}
 function pad(n){return n<10?"0"+n:""+n}
 function startTimer(){st.t0=Date.now();clearInterval(st.timer);st.timer=setInterval(function(){var s=Math.floor((Date.now()-st.t0)/1000);$("timer").textContent=pad(Math.floor(s/60))+":"+pad(s%60)},250)}
 function stopTimer(){clearInterval(st.timer);var s=Math.round((Date.now()-st.t0)/1000);$("timer").textContent="00:00";return s}
@@ -581,7 +539,7 @@ $("replay").onclick=function(){if(st.last)play(st.last)};
 
 // Mode
 function setMode(m){st.mode=m;$("m-unit").setAttribute("aria-pressed",m==="unit");$("m-disp").setAttribute("aria-pressed",m==="dispatch");
-  $("dispTools").classList.toggle("hidden",m==="unit");$("myStatus").classList.toggle("hidden",m==="dispatch");$("notePanel").classList.toggle("hidden",m!=="dispatch");sumProf();renderInc();renderAnn();refresh();net.hello();if(m==="dispatch"){net.bc({t:"inc",rev:st.incRev,list:st.inc,arch:st.incArch});net.bc({t:"ann",rev:st.annRev,list:st.ann,publishedId:""})}}
+  $("dispTools").classList.toggle("hidden",m==="unit");$("myStatus").classList.toggle("hidden",m==="dispatch");sumProf();renderInc();renderAnn();refresh();net.hello();if(m==="dispatch"){net.bc({t:"inc",rev:st.incRev,list:st.inc,arch:st.incArch});net.bc({t:"ann",rev:st.annRev,list:st.ann,publishedId:""})}}
 $("m-unit").onclick=function(){setMode("unit")};$("m-disp").onclick=function(){setMode("dispatch")};
 $("pwr").onclick=function(){ac();sndClick();
   if(st.on){forceStop();if(st.cur)st.cur.stop();st.on=false;net.stop();if(st.stream){st.stream.getTracks().forEach(function(t){t.stop()});st.stream=null}if(st.src){try{st.src.disconnect()}catch(e){}st.src=null}log("Radio éteinte.","sys",null,false,false);syncHeli();refresh()}
@@ -681,7 +639,7 @@ var net=(function(){
   function sendHello(c){try{c.send(prof({t:"hello"}));c.send({t:"state",s100:st.s100,panic:st.panics.me?1:0,who:disp(),pch:st.ch,inc:{rev:st.incRev,list:st.inc,arch:st.incArch},ann:{rev:st.annRev,list:st.ann}});sendHistory(c)}catch(e){}}
   function sendLogTo(c,rec,includeAudio){if(!c||!c.open||!rec||!rec.uid)return;try{c.send({t:"log",rec:recForWire(rec)})}catch(e){return}var pcm=rec.pcm;if(!includeAudio||!pcm||!pcm.length||pcm.length>600000)return;var chunkSize=2048,parts=Math.ceil(pcm.length/chunkSize),index=0;function next(){if(!c.open)return;var start=index*chunkSize,end=Math.min(pcm.length,start+chunkSize),values=Array.prototype.slice.call(pcm,start,end);try{c.send({t:"logAudio",uid:rec.uid,total:pcm.length,index:index,parts:parts,pcm:values,air:rec.air||0})}catch(e){}index++;if(index<parts)setTimeout(next,4)}setTimeout(next,4)}
   function sendLog(rec){Object.keys(conns).forEach(function(k){sendLogTo(conns[k],rec,true)})}
-  function sendHistory(c){try{Object.keys(deletedLogs).forEach(function(uid){if(c.open)c.send({t:"logDelete",uid:uid,owner:localUserId})});dbRange(Date.now()-86400000,Date.now()+60000,function(rows){var audioRows=rows.filter(function(r){return r&&r.uid&&!deletedLogs[r.uid]&&r.pcm&&r.pcm.length}).slice(-10),audioIds=Object.create(null);audioRows.forEach(function(r){audioIds[r.uid]=1});rows.forEach(function(r){if(c.open&&r.uid&&!deletedLogs[r.uid])sendLogTo(c,r,!!audioIds[r.uid])})})}catch(e){}}
+  function sendHistory(c){try{Object.keys(deletedLogs).forEach(function(uid){if(c.open)c.send({t:"logDelete",uid:uid,owner:localUserId})});dbAll(function(rows){var audioRows=rows.filter(function(r){return r&&r.uid&&!deletedLogs[r.uid]&&r.pcm&&r.pcm.length}).slice(-10),audioIds=Object.create(null);audioRows.forEach(function(r){audioIds[r.uid]=1});rows.forEach(function(r){if(c.open&&r.uid&&!deletedLogs[r.uid])sendLogTo(c,r,!!audioIds[r.uid])})})}catch(e){}}
   
   // Priorité radio : le premier qui a appuyé garde la fréquence (horodatage corrigé par l'écart d'horloge mesuré, départage par numéro d'emplacement)
   function iLose(p){if(!p.hasCo||!p.txs)return p.slot<me.slot;var d=(p.txs-p.co)-st.txStart;if(Math.abs(d)<=30)return p.slot<me.slot;return d<0}
@@ -701,7 +659,6 @@ var net=(function(){
     else if(m.t==="call")doCall(ch,String(m.txt||"").slice(0,140),w,true);
     else if(m.t==="panic")setPanic(id,!!m.on,w,ch,true);
     else if(m.t==="ack"){st.panics={};refresh()}
-    else if(m.t==="unitRename"){if(st.mode==="dispatch")incRenameUnit(String(m.o||"").slice(0,20),String(m.n||"").slice(0,20),true)}
     else if(m.t==="ann"){if(p.mode==="dispatch")annRecv(+m.rev||0,m.list,m.publishedId)}
     else if(m.t==="setStatus"){if(p.mode==="dispatch"&&st.mode==="unit"&&String(m.uid||"")===localUserId)setMyStatus(sttOk(m.s),w)}
     else if(m.t==="alertCall"){if(p.mode==="dispatch"){var ak=m.k==="swat"?"swat":"air";showUnitNotice(ak);playDeploy()}}
@@ -785,21 +742,17 @@ if(remGet()){$("remember").checked=true;$("pw").placeholder="Mot de passe mémor
 try{localStorage.removeItem("mishapPw")}catch(e){}
 
 // ===== Profil =====
-function divKey(){return st.mode==="dispatch"?"dispatch":$("division").value}
-function divLabel(){if(st.mode==="dispatch")return"Dispatch";var k=divKey();return k==="air"?"Air Unit":k==="other"?($("divOther").value.trim()||"Autres"):"Patrol Division"}
-function svcv(){return (st.mode==="dispatch"?$("dService"):$("service")).value.trim()}
-function gradev(){return st.mode==="dispatch"?"":$("grade").value.trim()}
+function divKey(){return st.mode==="dispatch"?"dispatch":(cfg.prof&&cfg.prof.div||"patrol")}
+function divLabel(){if(st.mode==="dispatch")return"Dispatch";var k=divKey();return k==="air"?"Air Unit":k==="other"?((cfg.prof&&cfg.prof.other||"").trim()||"Autres"):"Patrol Division"}
+function svcv(){return st.mode==="dispatch"?((cfg.dprof&&cfg.dprof.svc)||"").trim():((cfg.prof&&cfg.prof.svc)||"").trim()}
+function gradev(){return st.mode==="dispatch"?"":((cfg.prof&&cfg.prof.gr)||"").trim()}
 function prof(o){o.gr=gradev().slice(0,30);o.uid=localUserId;o.stt=st.mode==="dispatch"?"dispo":st.status;o.cs=cs();o.off=st.on?0:1;o.tx=st.tx?1:0;o.ts=st.txStart||0;o.ch=st.ch;o.mode=st.mode;o.div=divKey();o.dl=divLabel();o.svc=svcv();return o}
 function sumProf(){var d=st.mode==="dispatch";$("profUnit").classList.toggle("hidden",d);$("profDisp").classList.toggle("hidden",!d);$("divOther").classList.toggle("hidden",$("division").value!=="other");
   $("profK").textContent=d?"Profil dispatcher":"Profil";
-  $("profSum").textContent=(d?[$("dName").value.trim()||"DISPATCH",svcv()]:[$("callsign").value.trim(),gradev(),divLabel(),svcv()]).filter(Boolean).join(" · ")||"Configurer mon profil"}
-var profT=0,renT=0,csCommitted="";
-function flashProf(){var e=$("profOk");if(!e)return;e.textContent="✓ Profil mis à jour";e.classList.add("show");clearTimeout(flashProf.t);flashProf.t=setTimeout(function(){e.classList.remove("show")},1600)}
-function profApply(){sumProf();refresh();net.render();renderInc();flashProf()}
-function commitCs(){var n=$("callsign").value.trim();if(csCommitted&&n&&n!==csCommitted){incRenameUnit(csCommitted,n,false);net.bc({t:"unitRename",o:csCommitted,n:n})}if(n)csCommitted=n}
-function profSave(){cfg.prof={cs:$("callsign").value,div:$("division").value,other:$("divOther").value,svc:$("service").value,gr:$("grade").value};cfg.dprof={name:$("dName").value,svc:$("dService").value};save();profApply();clearTimeout(profT);profT=setTimeout(function(){net.hello();dayProf()},120);clearTimeout(renT);renT=setTimeout(commitCs,700)}
-["callsign","service","grade","divOther","dName","dService"].forEach(function(id){["input","change"].forEach(function(ev){$(id).addEventListener(ev,profSave)})});$("division").onchange=profSave;
-(function(){var p=cfg.prof;if(p){$("callsign").value=p.cs||"";$("division").value=p.div||"patrol";$("divOther").value=p.other||"";$("service").value=p.svc||"";$("grade").value=p.gr||""}else $("prof").open=true;csCommitted=($("callsign").value||"").trim();var q=cfg.dprof;if(q){$("dName").value=q.name||"";$("dService").value=q.svc||""}sumProf()})();
+  $("profSum").textContent=(d?[cs(),svcv()]:[cs(),gradev(),divLabel(),svcv()]).filter(Boolean).join(" · ")||"Configurer mon profil"}
+function profSave(){cfg.prof={cs:$("callsign").value.trim(),div:$("division").value,other:$("divOther").value.trim(),svc:$("service").value.trim(),gr:$("grade").value.trim()};cfg.dprof={name:$("dName").value.trim(),svc:$("dService").value.trim()};save();sumProf();refresh();net.hello();renderInc();var b=$("profSaveBtn");if(b){var old=b.textContent;b.textContent="Enregistré ✓";setTimeout(function(){b.textContent=old},1400)}}
+$("profSaveBtn").onclick=profSave;["callsign","service","grade","divOther","dName","dService"].forEach(function(id){$(id).addEventListener("input",function(){})});$("division").onchange=function(){$("divOther").classList.toggle("hidden",$("division").value!=="other")};
+(function(){var p=cfg.prof;if(p){$("callsign").value=p.cs||"";$("division").value=p.div||"patrol";$("divOther").value=p.other||"";$("service").value=p.svc||"";$("grade").value=p.gr||""}else $("prof").open=true;var q=cfg.dprof;if(q){$("dName").value=q.name||"";$("dService").value=q.svc||""}sumProf()})();
 // ===== Ambiance hélicoptère (Air Unit) : fichier fourni =====
 var airN=0;
 var HELI_GAIN=2.6,heliTried=false,heliOK=false,heliGainNode=null; // HELI_GAIN : renforcement du bruit d'hélico (1 = ancien niveau)
@@ -815,9 +768,7 @@ function syncHeli(){var a=$("heliAudio");if(!a)return;
   if(airN>0&&st.on){if(a.paused){a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){})}}else{a.pause();a.currentTime=0}}
 function heliInit(){syncHeli()}
 function air(d){airN=Math.max(0,airN+d);syncHeli()}
-$("clearLog").onclick=function(){var k=viewDay==="live"?dayKey(Date.now()):viewDay;if(!confirm("Effacer définitivement le journal enregistré du "+fmtDay(k)+" sur cet appareil ?"))return;clearDay(k,function(){dayProfSig="";fillDaySel();showDay("live");dayProf()})};
-$("logDay").onchange=function(){showDay(this.value)};$("logExport").onclick=exportDay;
-setInterval(function(){var t=dayKey(Date.now());if(lastDayKey&&t!==lastDayKey){fillDaySel();if(viewDay==="live")dayProf()}},60000);
+$("clearLog").onclick=function(){if(!confirm("Effacer tout le journal enregistré sur cet appareil ?"))return;$("logRadio").innerHTML="";$("logText").innerHTML="";if(DB){try{DB.transaction("log","readwrite").objectStore("log").clear()}catch(e){}}seenLogs=Object.create(null)};
 $("ptt").addEventListener("contextmenu",function(e){e.preventDefault()});
 // ===== Active Incidents (dispatch) : actifs et classés synchronisés ; brouillons privés (cet appareil uniquement, jamais envoyés) =====
 st.inc=[];st.incArch=[];st.incDraft=[];st.incRev=0;st.incEdit=null;st.incEditSource="inc";st.incSel=[];
@@ -837,8 +788,7 @@ function unitsOf(x){return x.units?x.units.split(", "):[]}
 // Rattachement d'une unité à un appel (idempotent : plusieurs dispatchers peuvent l'appliquer sans doublon)
 function incAttachApply(id,name,on,doPush){var x=st.inc.filter(function(y){return y.id===id})[0];if(!x||!name)return false;var l=unitsOf(x),i=l.indexOf(name);
   if(on&&i<0)l.push(name);else if(!on&&i>=0)l.splice(i,1);else return false;x.units=l.join(", ");if(doPush)incPush();else{incSave();renderInc()}return true}
-function incRenameUnit(o,n,push){if(!o||!n||o===n)return;var ch=false;st.inc.concat(st.incArch).forEach(function(x){var l=unitsOf(x),i=l.indexOf(o);if(i>=0){if(l.indexOf(n)<0)l[i]=n;else l.splice(i,1);x.units=l.join(", ");ch=true}});if(ch){if(push)incPush();else{incSave();renderInc()}}}
-function incAttach(x){var name=$("callsign").value.trim();
+function incAttach(x){var name=cs();
   if(!name){$("prof").open=true;sndDenied();log("Renseignez votre indicatif avant de vous attacher à un appel.","alert",null,false,false);return}
   var on=unitsOf(x).indexOf(name)<0;incAttachApply(x.id,name,on,false);net.bc({t:"incAttach",id:x.id,unit:name,on:on?1:0});if(on)setMyStatus("enroute","");
   log(name+(on?" s’est attaché à l’appel : ":" s’est détaché de l’appel : ")+(x.title||"Sans titre"),"sys",null,true);
@@ -852,7 +802,7 @@ function incCard(x,d,arch,draft){var c=el("div","inc "+codeCls(x.code)),hd=el("d
     else if(!arch){ac.appendChild(ibtn("Modifier",function(){incLoad(x,"inc")}));ac.appendChild(ibtn("Classer (Code 4)",function(){st.inc=without(st.inc,x);st.incArch.unshift(x);incPush()}))}
     else ac.appendChild(ibtn("Rouvrir",function(){st.incArch=without(st.incArch,x);st.inc.unshift(x);incPush()}));
     ac.appendChild(ibtn("Supprimer",function(){if(draft){st.incDraft=without(st.incDraft,x);draftsSave();renderInc()}else{if(arch)st.incArch=without(st.incArch,x);else st.inc=without(st.inc,x);incPush()}}));c.appendChild(ac)}
-  else if(!arch&&!draft){var ua=el("div","acts"),nm=$("callsign").value.trim(),att=!!nm&&unitsOf(x).indexOf(nm)>=0;
+  else if(!arch&&!draft){var ua=el("div","acts"),nm=cs(),att=!!nm&&unitsOf(x).indexOf(nm)>=0;
     ua.appendChild(ibtn(att?"Se détacher de l’appel":"S’attacher à l’appel",function(){incAttach(x)}));c.appendChild(ua)}
   return c}
 function renderUnitPick(){var C=$("incUnits");C.innerHTML="";var names=net.units().map(function(p){return p.cs});st.incSel.forEach(function(n){if(names.indexOf(n)<0)names.push(n)});
@@ -897,12 +847,6 @@ $("annAdd").onclick=function(){var t=$("annTitle").value.trim(),n=$("annNotes").
   var o={id:Date.now().toString(36)+Math.random().toString(36).slice(2,8),title:t,notes:n,tone:+$("annTone").value,author:disp(),ts:Date.now()};
   st.ann.unshift(o);if(st.ann.length>50)st.ann.length=50;$("annTitle").value="";$("annNotes").value="";annPush(o.id);playAnnTone(o.tone);
   log("Annonce ("+o.author+") : "+[t,n].filter(Boolean).join(" – "),"ann",null,true)};
-var noteT=0;
-try{$("noteArea").value=localStorage.getItem("mishapNotes")||""}catch(e){}
-function notesPersist(){try{localStorage.setItem("mishapNotes",$("noteArea").value);$("noteStat").textContent="Enregistré"}catch(e){$("noteStat").textContent="Non enregistré"}}
-$("noteArea").addEventListener("input",function(){$("noteStat").textContent="…";clearTimeout(noteT);noteT=setTimeout(notesPersist,400)});
-$("noteTime").onclick=function(){var a=$("noteArea"),t="["+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+"] ",b=a.selectionStart||0,e=a.selectionEnd||b;a.value=a.value.slice(0,b)+t+a.value.slice(e);a.selectionStart=a.selectionEnd=b+t.length;a.focus();notesPersist()};
-$("noteClear").onclick=function(){if(!$("noteArea").value||!confirm("Effacer tout le bloc-notes ?"))return;$("noteArea").value="";notesPersist()};
 renderAnn();
 renderInc();
 log("Radio prête.","sys");refresh();
