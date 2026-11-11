@@ -1258,7 +1258,7 @@ function remGet(){try{var j=JSON.parse(localStorage.getItem(REM)||"null");if(j&&
 function remSet(r){try{localStorage.setItem(REM,JSON.stringify({g:GATE,r:r}))}catch(e){}}
 function remClear(){try{localStorage.removeItem(REM)}catch(e){}}
 var roomKey="";
-function launch(r){$("gate").classList.add("hidden");document.querySelector("main").classList.remove("hidden");if(remGet())$("forgetPw").classList.remove("hidden");roomKey=r.slice(0,12);ac();applySink();st.tried=1;dbOpen(restoreLog);refresh()}
+function launch(r){$("gate").classList.add("hidden");document.querySelector("main").classList.remove("hidden");if(remGet())$("forgetPw").classList.remove("hidden");roomKey=r.slice(0,12);ac();applySink();st.tried=1;dbOpen(restoreLog);refresh();initMic();}
 function enter(){var pw=$("pw").value,saved=remGet();
   if(!pw&&saved){launch(saved);return}
   if(!window.crypto||!crypto.subtle){$("gerr").textContent="HTTPS requis : hébergez la page en https.";return}
